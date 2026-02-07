@@ -142,15 +142,17 @@ export default function Home() {
         agencyDebt: lag.value,
         mbs: lm.value,
         tga: lg.value,
-        onRrp: lr.value,
+        onRrp: lr.value * 1000, // convert billions to millions for consistent formatB display
         gdp: lgdp.value,
       });
 
       // YTD changes
       var ys = function (arr) {
         if (!arr || arr.length === 0) return null;
-        var found = arr.find(function (d) { return d.date >= "2025-12-24" && d.date <= "2026-01-08"; });
-        if (!found) found = arr.find(function (d) { return d.date >= "2025-12-15"; });
+        // Try exact Dec 31 first, then closest to year-end
+        var found = arr.find(function (d) { return d.date === "2025-12-31"; });
+        if (!found) found = arr.find(function (d) { return d.date >= "2025-12-29" && d.date <= "2026-01-02"; });
+        if (!found) found = arr.find(function (d) { return d.date >= "2025-12-24"; });
         return found || arr[0];
       };
 
@@ -158,7 +160,7 @@ export default function Home() {
       var dAg = (lag.value - (ys(data.FEDDT) || lag).value) / 1000;
       var dM = (lm.value - ys(data.WSHOMCB).value) / 1000;
       var dTGA = (lg.value - ys(data.WTREGEN).value) / 1000;
-      var dRRP = (lr.value - ys(data.RRPONTSYD).value) / 1000;
+      var dRRP = lr.value - ys(data.RRPONTSYD).value; // RRPONTSYD is already in billions
       var net = (dT + dAg + dM) - dTGA - dRRP;
 
       setYtdBars([
